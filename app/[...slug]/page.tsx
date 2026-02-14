@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import Link from "next/link";
-import { getHikeDir, getPathFromSlug, getFrontmatter, formatDate } from "@/lib/mdx";
+import { getHikeDir, getPathFromSlug, compileMdx, formatDate } from "@/lib/mdx";
 
 export default async function PostPage({
   params,
@@ -11,7 +11,7 @@ export default async function PostPage({
   const hikeDir = getHikeDir();
   const filePath = getPathFromSlug(hikeDir, slug);
   const source = fs.readFileSync(filePath, "utf-8");
-  const frontmatter = getFrontmatter(filePath);
+  const { Content, frontmatter } = await compileMdx(source);
 
   return (
     <main className="mx-auto max-w-3xl p-8">
@@ -26,9 +26,9 @@ export default async function PostPage({
           {formatDate(frontmatter.date)}
         </p>
       )}
-      <pre className="mt-6 whitespace-pre-wrap text-sm bg-muted/50 p-4 rounded-lg overflow-x-auto">
-        {source}
-      </pre>
+      <article className="prose dark:prose-invert mt-6">
+        <Content />
+      </article>
     </main>
   );
 }
