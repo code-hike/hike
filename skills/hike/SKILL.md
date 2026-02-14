@@ -174,6 +174,8 @@ This should be unedited stream-of-consciousness — the messy real-time reasonin
 
 ## Phase 6: Store and Display
 
+**Before writing, check for secrets.** Scan the full output for API keys, tokens, passwords, credentials, or private URLs. Redact or omit any that appear.
+
 Write to `.hike/<descriptive-slug>.mdx`. Derive the slug from session content (e.g., `add-dark-mode-toggle.mdx`, `fix-auth-redirect-loop.mdx`, `refactor-api-client.mdx`). Create `.hike/` if it doesn't exist.
 
 Run `npx @code-hike/hike@<version> <filename>` in the background to open a browser preview. Use the same version of the `hike` packages as the version of this skill. Use `run_in_background: true` so the user can review at their own pace without blocking the conversation:
