@@ -18,7 +18,8 @@
     "postbuild": "node scripts/clean-next.mjs",
     "start": "node bin/hike.js",
     "prepack": "npm run build",
-    "clean": "rm -rf .next"
+    "clean": "rm -rf .next",
+    "publish:npm": "npm publish --access public"
   },
   "files": [
     "bin/",
