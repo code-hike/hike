@@ -70,7 +70,7 @@ Go through the ordered files one at a time. For each file, think about how to br
 
 ### Walk syntax
 
-Each file gets one `<Walk>` block with a `filename` attribute. Inside it, each step is a code fence with `!!` in the metastring. Tooltip content goes in `## !id` headings after the steps.
+Each file gets one `<Walk>` block with a `filename` attribute. Inside it, each step is a code fence with "!!" in the metastring. Tooltip content goes in `## !id` headings after the steps.
 
 ````mdx
 <Walk filename="app/api/mtime/route.ts">
