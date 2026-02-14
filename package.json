@@ -13,7 +13,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "HIKE_CWD=./fixtures next dev",
     "build": "next build",
     "postbuild": "node scripts/clean-next.mjs",
     "start": "node bin/hike.js",
@@ -30,6 +30,7 @@
     "npx"
   ],
   "dependencies": {
+    "gray-matter": "^4.0.3",
     "next": "16.1.3",
     "react": "19.2.3",
     "react-dom": "19.2.3"
