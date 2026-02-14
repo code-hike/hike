@@ -1,6 +1,13 @@
 import fs from "node:fs";
 import Link from "next/link";
-import { getHikeDir, getPathFromSlug, compileMdx, formatDate, getFrontmatter } from "@/lib/mdx";
+import {
+  getHikeDir,
+  getPathFromSlug,
+  compileMdx,
+  formatDate,
+  getFrontmatter,
+  getProjectName,
+} from "@/lib/mdx";
 import { addDocsKit } from "@/components/docskit";
 
 export async function generateMetadata({
@@ -33,7 +40,7 @@ export default async function PostPage({
           href="/"
           className="inline-flex items-center gap-1 text-sm text-neutral-400 hover:text-neutral-600 transition-colors mb-4"
         >
-          &larr; Hikes
+          &larr; {getProjectName()}
         </Link>
         <div className="bg-white rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] px-8 py-8 sm:px-12 sm:py-10">
           <h1 className="text-2xl font-bold text-neutral-900">

@@ -16,6 +16,12 @@ export function getHikeDir(): string {
   return path.join(cwd, ".hike");
 }
 
+export function getProjectName(): string {
+  const cwd = process.env.HIKE_CWD || process.cwd();
+  const name = path.basename(cwd);
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 export function findMdxFiles(dir: string): string[] {
   const files: string[] = [];
   try {

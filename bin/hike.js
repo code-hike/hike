@@ -336,6 +336,9 @@ async function main() {
     console.log(`Port ${requestedPort} is in use, using ${port} instead`);
   }
 
+  const cwd = process.cwd();
+  console.log(`Project: ${path.basename(cwd)} (${cwd})`);
+
   const root = path.resolve(__dirname, "..");
 
   if (args.command === "dev") {

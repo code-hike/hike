@@ -1,9 +1,20 @@
 import Link from "next/link";
-import { getSortedPosts, formatDate, formatTime } from "@/lib/mdx";
+import {
+  getSortedPosts,
+  formatDate,
+  formatTime,
+  getProjectName,
+} from "@/lib/mdx";
+import type { Metadata } from "next";
 import type { PostInfo } from "@/lib/mdx";
+
+export function generateMetadata(): Metadata {
+  return { title: `${getProjectName()} Hikes` };
+}
 
 export default function Home() {
   const posts = getSortedPosts();
+  const projectName = getProjectName();
 
   // Group posts by day
   const groups: { label: string; posts: PostInfo[] }[] = [];
@@ -22,6 +33,9 @@ export default function Home() {
     <main className="min-h-screen bg-stone-50">
       <div className="mx-auto max-w-2xl px-4 pt-8 pb-16">
         <div className="bg-white rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] px-8 py-8 sm:px-10 sm:py-10">
+          <h1 className="text-xs font-medium uppercase tracking-widest text-neutral-600 mb-6 text-center">
+            {projectName} hikes
+          </h1>
           <div className="space-y-8">
             {groups.map(({ label, posts }, i) => (
               <section key={label || "undated"}>
