@@ -13,7 +13,7 @@ allowed-tools:
   - Bash(git rev-parse*)
   - Bash(git show*)
   - Bash(npx @code-hike/hike*)
-version: 0.0.2
+version: 0.1.0
 ---
 
 Write a narrative explaining what happened in this coding session.

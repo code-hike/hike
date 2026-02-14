@@ -52,6 +52,15 @@ export function formatDate(dateStr: string): string {
   });
 }
 
+export function formatTime(dateStr: string): string | null {
+  if (!dateStr.includes("T")) return null;
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function getFrontmatter(filePath: string): MdxFrontmatter {
   try {
     const source = fs.readFileSync(filePath, "utf-8");
