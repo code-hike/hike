@@ -121,7 +121,9 @@ function parseArgs(argv) {
 
     // Treat any other non-flag argument as the page name
     if (!a.startsWith("-")) {
-      result.page = a.replace(/\.mdx$/i, ""); // strip .mdx if provided
+      result.page = a
+        .replace(/^\.hike[\\/]/, "") // strip .hike/ or .hike\ prefix if provided
+        .replace(/\.mdx$/i, ""); // strip .mdx if provided
       continue;
     }
   }
@@ -213,8 +215,8 @@ function runDev({ root, port, page }) {
       /ready|listening|started server/i.test(text)
     ) {
       opened = true;
-      writeInstanceInfo(port);
       openBrowser(url);
+      writeInstanceInfo(port);
     }
   };
 
@@ -288,8 +290,8 @@ function runProd({ root, port, page }) {
       /ready|listening|started server/i.test(text)
     ) {
       opened = true;
-      writeInstanceInfo(port);
       openBrowser(url);
+      writeInstanceInfo(port);
     }
   };
 
