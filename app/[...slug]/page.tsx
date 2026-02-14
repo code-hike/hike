@@ -51,7 +51,7 @@ export default async function PostPage({
               {formatDate(frontmatter.date)}
             </p>
           )}
-          <article className="prose dark:prose-invert mt-6">
+          <article className="prose mt-6">
             <Content components={addDocsKit({})} />
           </article>
         </div>
