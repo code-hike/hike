@@ -3,6 +3,8 @@ import path from "node:path";
 import matter from "gray-matter";
 import { compile, run } from "@mdx-js/mdx";
 import * as runtime from "react/jsx-runtime";
+import { remarkCodeHike, recmaCodeHike } from "codehike/mdx";
+import { chConfig } from "@/components/code.config";
 
 export interface MdxFrontmatter {
   title?: string;
@@ -62,7 +64,11 @@ export function getFrontmatter(filePath: string): MdxFrontmatter {
 
 export async function compileMdx(source: string) {
   const { content, data } = matter(source);
-  const compiled = await compile(content, { outputFormat: "function-body" });
+  const compiled = await compile(content, {
+    outputFormat: "function-body",
+    remarkPlugins: [[remarkCodeHike, chConfig]],
+    recmaPlugins: [[recmaCodeHike, chConfig]],
+  });
   const { default: Content } = await run(String(compiled), {
     ...(runtime as any),
     baseUrl: import.meta.url,

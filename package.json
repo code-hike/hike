@@ -31,11 +31,18 @@
   ],
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/typography": "^0.5.19",
+    "clsx": "^2.1.1",
+    "codehike": "^1.0.7",
     "gray-matter": "^4.0.3",
+    "lucide-react": "^0.564.0",
     "next": "16.1.3",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "seti-icons": "^0.0.4",
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

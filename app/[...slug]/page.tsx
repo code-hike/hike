@@ -1,6 +1,19 @@
 import fs from "node:fs";
 import Link from "next/link";
-import { getHikeDir, getPathFromSlug, compileMdx, formatDate } from "@/lib/mdx";
+import { getHikeDir, getPathFromSlug, compileMdx, formatDate, getFrontmatter } from "@/lib/mdx";
+import { addDocsKit } from "@/components/docskit";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string[] }>;
+}) {
+  const { slug } = await params;
+  const hikeDir = getHikeDir();
+  const filePath = getPathFromSlug(hikeDir, slug);
+  const frontmatter = getFrontmatter(filePath);
+  return { title: frontmatter.title || slug.join("/") };
+}
 
 export default async function PostPage({
   params,
@@ -27,7 +40,7 @@ export default async function PostPage({
         </p>
       )}
       <article className="prose dark:prose-invert mt-6">
-        <Content />
+        <Content components={addDocsKit({})} />
       </article>
     </main>
   );

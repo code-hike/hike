@@ -1,2 +1,77 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+@theme inline {
+  --color-dk-background: var(--ch-16);
+  --color-dk-selection: var(--ch-20);
+  --color-dk-border: var(--ch-23);
+  --color-dk-tab-active-foreground: var(--ch-4);
+  --color-dk-tab-inactive-foreground: var(--ch-15);
+  --color-dk-line-number: var(--ch-24);
+  --color-dk-tabs-background: var(--ch-22);
+  --color-dk-active-border: var(--ch-3);
+  --color-ch-26: var(--ch-26);
+  --color-ch-25: var(--ch-25);
+  --color-ch-24: var(--ch-24);
+  --color-ch-23: var(--ch-23);
+  --color-ch-22: var(--ch-22);
+  --color-ch-21: var(--ch-21);
+  --color-ch-20: var(--ch-20);
+  --color-ch-19: var(--ch-19);
+  --color-ch-18: var(--ch-18);
+  --color-ch-17: var(--ch-17);
+  --color-ch-16: var(--ch-16);
+  --color-ch-15: var(--ch-15);
+  --color-ch-14: var(--ch-14);
+  --color-ch-13: var(--ch-13);
+  --color-ch-12: var(--ch-12);
+  --color-ch-11: var(--ch-11);
+  --color-ch-10: var(--ch-10);
+  --color-ch-9: var(--ch-9);
+  --color-ch-8: var(--ch-8);
+  --color-ch-7: var(--ch-7);
+  --color-ch-6: var(--ch-6);
+  --color-ch-5: var(--ch-5);
+  --color-ch-4: var(--ch-4);
+  --color-ch-3: var(--ch-3);
+  --color-ch-2: var(--ch-2);
+  --color-ch-1: var(--ch-1);
+  --ch-0: var(--ch-0);
+}
+
+:root {
+  color-scheme: light;
+  --ch-0: light;
+  --ch-1: #6e7781;
+  --ch-2: #0550ae;
+  --ch-3: #953800;
+  --ch-4: #24292f;
+  --ch-5: #8250df;
+  --ch-6: #116329;
+  --ch-7: #cf222e;
+  --ch-8: #0a3069;
+  --ch-9: #82071e;
+  --ch-10: #f6f8fa;
+  --ch-11: #ffebe9;
+  --ch-12: #dafbe1;
+  --ch-13: #ffd8b5;
+  --ch-14: #eaeef2;
+  --ch-15: #57606a;
+  --ch-16: #ffffff;
+  --ch-17: #eaeef280;
+  --ch-18: #fdff0033;
+  --ch-19: #1a85ff;
+  --ch-20: #add6ff;
+  --ch-21: #0969da;
+  --ch-22: #f6f8fa;
+  --ch-23: #d0d7de;
+  --ch-24: #8c959f;
+  --ch-25: #afb8c133;
+  --ch-26: #ffffffe6;
+}
+
+/* Remove backticks from inline code in prose */
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::before,
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::after {
+  content: none;
+}

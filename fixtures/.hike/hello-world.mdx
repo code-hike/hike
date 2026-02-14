@@ -1,12 +1,248 @@
 ---
-title: Hello World
-date: 2026-02-10
+title: "Auto-reload goal page on MDX file changes"
+date: "2026-02-20T09:50:00"
+version: "0.0.1"
 ---
 
-# Hello World
+The mastery app reads `.goal.mdx` files from outside the Next.js tree (`../../hikes/`), so the dev server doesn't watch them — editing a file means a manual browser refresh.
 
-This is a sample hike post.
+The fix: a polling loop that checks the file's **mtime** every second and calls `router.refresh()` when it changes. Three pieces: an API route, a polling component, and a one-line page integration.
 
-```js
-console.log("hello world")
+## Mtime endpoint
+
+An API route that returns a file's last-modified timestamp. It reuses the existing _`getHikeFilePath`_ helper to resolve hike names to disk paths.
+
+<Walk filename="apps/mastery/app/api/file-mtime/route.ts">
+
+```ts !!
+// !tooltip[/force-dynamic/] dynamic
+export const dynamic = "force-dynamic";
+
+// !callout[/GET/] Route handler that returns a file's mtime
+export async function GET(request: NextRequest) {
+  // ...
+}
 ```
+
+```ts !!
+// !tooltip[/force-dynamic/] dynamic
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  // !callout[/searchParams/] Read file name from the query string
+  const fileName = request.nextUrl.searchParams.get("file");
+  // ...
+}
+```
+
+```ts !!
+// !tooltip[/force-dynamic/] dynamic
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  const fileName = request.nextUrl.searchParams.get("file");
+
+  // !mark
+  if (!fileName) {
+    // !callout[/400/] Bail early if missing
+    return NextResponse.json({ error: "Missing file" }, { status: 400 });
+    // !mark
+  }
+
+  // ...
+}
+```
+
+```ts !!
+// !tooltip[/force-dynamic/] dynamic
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  const fileName = request.nextUrl.searchParams.get("file");
+
+  if (!fileName) {
+    return NextResponse.json({ error: "Missing file" }, { status: 400 });
+  }
+
+  // !callout[/getHikeFilePath/] Resolve path, stat, return mtime
+  // !mark
+  const filePath = getHikeFilePath(fileName);
+  // !mark
+  const stat = fs.statSync(filePath);
+  // !mark
+  return NextResponse.json({ mtime: stat.mtimeMs });
+}
+```
+
+```ts !!
+// !tooltip[/force-dynamic/] dynamic
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  const fileName = request.nextUrl.searchParams.get("file");
+
+  if (!fileName) {
+    return NextResponse.json({ error: "Missing file" }, { status: 400 });
+  }
+
+  // !callout[/catch/] Wrap in try/catch for missing files
+  try {
+    const filePath = getHikeFilePath(fileName);
+    const stat = fs.statSync(filePath);
+    return NextResponse.json({ mtime: stat.mtimeMs });
+  } catch {
+    // !mark
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+}
+```
+
+## !dynamic
+
+Next.js caches route handlers by default; `force-dynamic` ensures every poll gets a fresh stat.
+
+</Walk>
+
+## Polling component
+
+A client component that polls the endpoint and triggers a refresh when the mtime changes. It renders nothing — pure side effect.
+
+<Walk filename="apps/mastery/components/dev-auto-refresh.tsx">
+
+```tsx !!
+"use client";
+
+// !callout[/DevAutoRefresh/] Takes a file name, renders nothing
+export function DevAutoRefresh({ fileName }: { fileName: string }) {
+  return null;
+}
+```
+
+```tsx !!
+"use client";
+
+export function DevAutoRefresh({ fileName }: { fileName: string }) {
+  const router = useRouter();
+  // !callout[/useRef/] Track the last known mtime
+  const lastMtime = useRef<number | null>(null);
+
+  // ...
+
+  return null;
+}
+```
+
+```tsx !!
+"use client";
+
+export function DevAutoRefresh({ fileName }: { fileName: string }) {
+  const router = useRouter();
+  const lastMtime = useRef<number | null>(null);
+
+  // !callout[/useEffect/] Poll every second, only in dev
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+
+    const interval = setInterval(async () => {
+      // ... poll logic
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [fileName, router]);
+
+  return null;
+}
+```
+
+```tsx !!
+"use client";
+
+export function DevAutoRefresh({ fileName }: { fileName: string }) {
+  const router = useRouter();
+  const lastMtime = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+
+    const interval = setInterval(async () => {
+      const res = await fetch(
+        `/api/file-mtime?file=${encodeURIComponent(fileName)}`,
+      );
+      if (!res.ok) return;
+      const { mtime } = await res.json();
+      // !callout[/lastMtime.current !== null/] Skip first poll — just store the baseline
+      if (lastMtime.current !== null && lastMtime.current !== mtime) {
+        // !mark
+        router.refresh();
+      }
+      lastMtime.current = mtime;
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [fileName, router]);
+
+  return null;
+}
+```
+
+</Walk>
+
+The `lastMtime.current !== null` guard is the key detail: on the first poll we store the baseline. Only subsequent polls with a _different_ value trigger `router.refresh()`, avoiding a spurious refresh on page load.
+
+## Wiring it in
+
+Drop _`DevAutoRefresh`_ into the goal page. It renders `null`, so it doesn't affect layout.
+
+<Walk filename="apps/mastery/app/goal/[fileName]/page.tsx">
+
+```tsx !!
+// existing page
+export default async function GoalPage({ params }) {
+  // ... load and compile MDX ...
+
+  return <main>{/* goal content */}</main>;
+}
+```
+
+```tsx !!
+import { DevAutoRefresh } from "@/components/dev-auto-refresh";
+
+export default async function GoalPage({ params }) {
+  // ... load and compile MDX ...
+
+  return (
+    <>
+      {/* !callout[/DevAutoRefresh/] Polls mtime, refreshes on change */}
+      {/* !mark */}
+      <DevAutoRefresh fileName={goalFileName} />
+      <main>{/* goal content */}</main>
+    </>
+  );
+}
+```
+
+</Walk>
+
+The component is generic — any page that reads external files can use it. `fs.watch` with SSE was considered but polling is simpler, more reliable across platforms, and one JSON request per second in dev is negligible. Since `getHikeSource` reads files synchronously on each request (no caching), `router.refresh()` naturally picks up the latest content.
+
+---
+
+## Thought Process
+
+Phase 1: Straightforward extraction. Three files, one clear problem, one clean solution. No dead ends in this session. The map explicitly explains the polling-vs-SSE tradeoff — worth preserving in the narrative. Also noted the reusability angle and the detail about how `router.refresh()` preserves scroll position.
+
+Phase 2: Order is a straight dependency chain — API route defines the data, component consumes it, page wires it in. No debate here.
+
+Phase 3 splitting decisions:
+
+API route — went with 5 steps. (1) skeleton with force-dynamic + empty handler — sets up the caching concern via tooltip right away. (2) extract query param. (3) validation guard for missing file. (4) core logic: resolve path, stat, return mtime — three lines but tightly coupled, one step. (5) try/catch wrapper. Considered combining validation + core but that's ~6 meaningful new lines, better split. The try/catch is its own concern.
+
+Client component — 4 steps. (1) shell: "use client", props, returns null — establishes this is a side-effect-only component. (2) router + ref — the state tracking mechanism. (3) useEffect skeleton with interval setup/cleanup — the structure without the actual logic. (4) full poll logic including the null check. The `lastMtime.current !== null` is the most interesting line so it gets the callout. Considered splitting fetch from comparison but they're too tightly coupled to separate.
+
+Goal page — 2 steps only. (1) existing structure so reader has context. (2) the addition: import, fragment wrapper, component drop-in. Minimal change, no reason to split further.
+
+Phase 4: Opening is two short paragraphs: problem, then approach with the three-piece overview. Section headers mark each Walk. Transitions are minimal — one sentence each. Final paragraph combines the SSE rationale, reusability, and the detail about synchronous reads that makes router.refresh() work. Considered a mermaid diagram for the poll cycle (component → API → fs → comparison → router.refresh) but it's a linear flow — prose is cleaner.
+
+Kept imports out of API route steps (NextRequest/NextResponse are obvious). Included "use client" in every client component step since it's essential context. Left React hook imports out — reader can infer them from usage.
+
+Compared to the previous version of this file: mostly the same structure, tightened some prose, kept the same step counts. Added the note about synchronous reads at the end (from the map's "How MDX files flow" section) since it explains why router.refresh() is sufficient.
