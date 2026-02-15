@@ -1,6 +1,6 @@
 {
   "name": "@code-hike/hike",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Run the Hike Next.js app via npx.",
   "private": false,
   "license": "MIT",
