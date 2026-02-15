@@ -7,6 +7,7 @@ import { callout } from "./callout"
 import { tooltip } from "./tooltip"
 import { tokenTransitions } from "./token-transitions"
 import { createDiffHandler } from "./diff"
+import { wordWrap } from "./word-wrap"
 
 export function getHandlers(options: CodeOptions) {
   return [
@@ -15,6 +16,7 @@ export function getHandlers(options: CodeOptions) {
     callout,
     tooltip,
     createDiffHandler({ forceGutter: options.forceDiffGutter }),
+    options.wordWrap && wordWrap,
     options.animate && tokenTransitions,
   ].filter(Boolean) as AnnotationHandler[]
 }
