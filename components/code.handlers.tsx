@@ -6,6 +6,7 @@ import { mark } from "./mark"
 import { callout } from "./callout"
 import { tooltip } from "./tooltip"
 import { tokenTransitions } from "./token-transitions"
+import { createDiffHandler } from "./diff"
 
 export function getHandlers(options: CodeOptions) {
   return [
@@ -13,6 +14,7 @@ export function getHandlers(options: CodeOptions) {
     mark,
     callout,
     tooltip,
+    createDiffHandler({ forceGutter: options.forceDiffGutter }),
     options.animate && tokenTransitions,
   ].filter(Boolean) as AnnotationHandler[]
 }

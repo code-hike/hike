@@ -54,10 +54,11 @@ Go through the ordered files one at a time. For each file, think about how to br
 
 ### How to split
 
-- One small concept per step. As a rule of thumb, _small_ is around 3 lines of new code — though it depends on complexity. The idea is that each step should be easy to digest.
+- **Hard limit: no more than 5 new or changed lines per step.** (Collapsing previously-introduced code into a comment doesn't count as a changed line.) If a step exceeds this, split it — no exceptions.
 - If you're wondering whether to split — split.
 - If it's a new file, start very small.
 - Keep some shared code between consecutive steps so the reader has an anchor for the transition. If two steps share no code at all, they probably belong in separate `<Walk>` blocks.
+- **Freeze context code between steps.** Code carried over from a previous step for orientation must not change — don't silently add, modify, or reorder lines in it. (Collapsing multiple lines into a comment is fine — that reduces noise.) If the reader sees the context shift, their attention splits between the context change and the new code you're actually introducing. If you need to change that code too, do it in its own step first.
 
 ### What to include in each step
 
@@ -329,10 +330,12 @@ After building all steps for a file, re-read each step and verify:
 1. Does it show the enclosing function/class/block? If not, add parent scope.
 2. Is there filler code that doesn't serve the explanation? If so, trim it.
 3. Does it introduce code that isn't relevant until a later step? If so, move it.
-4. Is the step small enough (roughly 3 new lines)? If not, split it.
+4. Does the step have more than 5 new or changed lines? If so, split it.
 5. Do consecutive steps share enough code for the reader to stay oriented? If not, add shared context.
 6. If the step isn't self-evident, does it have a `!callout`? If not, add one.
 7. Scan the step line by line. For each code line (not annotation comments), ask: is this from the diff and first introduced in this step? If yes, it needs a `!mark` before it (unless it's the callout target). Only skip marks with good reason.
+8. Compare each step's context code to the previous step. Is any carried-over code different (other than collapsing multiple lines into a comment)? If so, freeze it or move the change to its own step.
+9. Are all annotation comments (`!callout`, `!mark`, `!tooltip`, `!diff`) using the correct comment syntax for their context? (`//` in JS/TS, `{/* */}` in JSX)
 
 Fix any violations before moving to the next file.
 
