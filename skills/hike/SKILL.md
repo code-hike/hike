@@ -54,7 +54,7 @@ Go through the ordered files one at a time. For each file, think about how to br
 
 ### How to split
 
-- One small concept per step. As a rule of thumb, _small_ is around 3 lines of new code — though it depends on complexity and atomicity. The idea is that each step should be easy to digest.
+- One small concept per step. As a rule of thumb, _small_ is around 3 lines of new code — though it depends on complexity. The idea is that each step should be easy to digest.
 - If you're wondering whether to split — split.
 - If it's a new file, start very small.
 - Keep some shared code between consecutive steps so the reader has an anchor for the transition. If two steps share no code at all, they probably belong in separate `<Walk>` blocks.
@@ -64,7 +64,7 @@ Go through the ordered files one at a time. For each file, think about how to br
 - Only the code that matters. Filler code or unimportant classnames distract the reader from the important parts.
 - **Always include parent scope.** Every snippet must show all enclosing scopes up to the top-level declaration (function, class, component) so the reader knows _where_ in the file the code lives. Never show floating lines without their surrounding structure.
 - If some code isn't used until a later step, wait until that step to introduce it. Don't preload imports, helpers, or variables.
-- If needed, use comments to signal collapsed code or code that will be introduced later.
+- If needed, use comments to signal collapsed code, code that will be introduced later, or code from earlier steps that is no longer relevant to the current step.
 - **Add a `!callout` to every step.** Callouts guide the reader's attention and help them parse the step faster. Carefully pick the most important line in the step to place the callout — it should point to the key change.
 - Max one `!callout` per step. If a step needs more than one callout, it's probably better to split into more steps.
 - **Mark changes.** By default, every line that comes from the diff and is first introduced in the current step gets a `!mark` — except the line targeted by the `!callout`. Deviate from these defaults only with good reason (e.g., skip marks when most lines in the step would be marked — in that case the marks add no signal).
@@ -122,6 +122,7 @@ Annotation reference:
 - `!callout[/regex/] message` — explains intent at a regex match on the next line.
 - `!tooltip[/regex/] id` — on-demand detail, matching regex on the next line.
 - `!mark` — highlights the next line (no message, just visual emphasis).
+- `!diff -` — marks the next line as removed (struck-through / red). Use when highlighting a deletion is important for the explanation.
 - Match comment style to language, for example:
   - TS/JS: `// !callout[...]`
   - JSX/TSX blocks: `{/* !callout[...] */}`
