@@ -80,20 +80,20 @@ Each group of related changes gets one `<Walk>` block with a `filename` attribut
 <Walk filename="app/api/mtime/route.ts">
 
 ```ts !!
-// !tooltip[/force-dynamic/] dynamic
+// !tooltip[/force-dynamic/m] dynamic
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const fileName = request.nextUrl.searchParams.get("file");
   const filePath = getFilePath(fileName);
-  // !callout[/statSync/] Read modified time from file system
+  // !callout[/statSync/m] Read modified time from file system
   const stat = fs.statSync(filePath);
   return NextResponse.json({ mtime: stat.mtimeMs });
 }
 ```
 
 ```ts !!
-// !tooltip[/force-dynamic/] dynamic
+// !tooltip[/force-dynamic/m] dynamic
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
 
   // !mark-start
   if (!fileName) {
-    // !callout[/NextResponse/] Handle missing file
+    // !callout[/NextResponse/m] Handle missing file
     return NextResponse.json({ error: "Missing file" }, { status: 400 });
   }
   // !mark-end
@@ -121,13 +121,13 @@ Next.js caches route handlers by default; `force-dynamic` ensures every poll get
 
 Annotation reference:
 
-- `!callout[/regex/] message` — explains intent at a regex match on the next line.
-- `!tooltip[/regex/] id` — on-demand detail, matching regex on the next line.
+- `!callout[/regex/m] message` — explains intent at a regex match. The `m` flag searches forward through the step to find the match.
+- `!tooltip[/regex/m] id` — on-demand detail at a regex match.
 - `!mark-start` / `!mark-end` — highlights all lines between the two markers (visual emphasis, no message).
 - `!diff -` — marks the next line as removed (struck-through / red). Use when highlighting a deletion is important for the explanation.
 - Match comment style to language, for example:
-  - TS/JS: `// !callout[...]`
-  - JSX/TSX blocks: `{/* !callout[...] */}`
+  - TS/JS: `// !callout[/regex/m]`
+  - JSX/TSX blocks: `{/* !callout[/regex/m] */}`
 
 ### Common Pitfalls
 
@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing param" }, { status: 400 });
   }
   const normalized = path.normalize(filePath);
-  // !callout[/startsWith/] Prevent path traversal
+  // !callout[/startsWith/m] Prevent path traversal
   if (!normalized.startsWith(BASE_DIR)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -210,39 +210,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing param" }, { status: 400 });
   }
   const normalized = path.normalize(filePath);
-  // !callout[/startsWith/] Prevent path traversal
+  // !callout[/startsWith/m] Prevent path traversal
   if (!normalized.startsWith(BASE_DIR)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   // !mark-end
   const stat = fs.statSync(filePath);
   return NextResponse.json({ mtime: stat.mtimeMs });
-}
-```
-
-#### Callout placement
-
-`!callout` targets the **next line**. Place it immediately before the line you want to annotate, not at the top of the block.
-
-Bad — callout targeting `/youtubeId/` that's not in the next line:
-
-```tsx
-// !callout[/youtubeId/] Include in the save payload
-export function SongContent({ songId, initialSong }: SongContentProps) {
-  // ...
-  body: JSON.stringify({ sections, youtubeId: youtubeId || undefined }),
-  // ...
-}
-```
-
-Good — callout right before its target line:
-
-```tsx
-export function SongContent({ songId, initialSong }: SongContentProps) {
-  // ...
-  // !callout[/youtubeId/] Include in the save payload
-  body: JSON.stringify({ sections, youtubeId: youtubeId || undefined }),
-  // ...
 }
 ```
 
@@ -344,7 +318,7 @@ Now assemble the full MDX file. The `<Walk>` blocks are the backbone — the pro
 
 **Prose style:** Short sentences. Front-load the key point. Bold sparingly for scanning. Inline code as _`symbol`_. End with a colon when directly introducing a code block. Don't repeat what's visible in the snippet.
 
-**Comment syntax for annotations:** TS/JS → `// !callout[...]`, JSX → `{/* !callout[...] */}`. Annotations (`!mark-start`/`!mark-end`, `!callout`, `!diff`, `!tooltip`) only work inside `<Walk>`-managed code blocks. Outside them, use standard fenced code blocks with short prose.
+**Comment syntax for annotations:** TS/JS → `// !callout[/regex/m]`, JSX → `{/* !callout[/regex/m] */}`. Annotations (`!mark-start`/`!mark-end`, `!callout`, `!diff`, `!tooltip`) only work inside `<Walk>`-managed code blocks. Outside them, use standard fenced code blocks with short prose.
 
 **Close with completeness:** The final steps should show the complete working mechanism.
 
