@@ -49,7 +49,10 @@ export const callout: AnnotationHandler = {
     return (
       <InnerLine merge={props}>
         {children}
-        <div className="-mx-3 px-3 py-1.5">
+        <div
+          className="-mx-3 px-3 py-1.5"
+          style={{ animation: "callout-enter 300ms ease-out 400ms backwards" }}
+        >
           <div
             style={{
               minWidth: `${column + 4}ch`,

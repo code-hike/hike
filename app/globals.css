@@ -70,6 +70,22 @@
   --ch-26: #ffffffe6;
 }
 
+@keyframes callout-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes line-bg-enter {
+  from {
+    background-color: transparent;
+    border-left-color: transparent;
+  }
+}
+
 /* Remove backticks from inline code in prose */
 .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::before,
 .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::after {

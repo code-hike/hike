@@ -9,8 +9,9 @@ export const line: AnnotationHandler = {
         style={{
           borderLeftColor: "var(--dk-line-border, transparent)",
           backgroundColor: "var(--dk-line-bg, transparent)",
+          animation: "line-bg-enter 300ms ease-out 400ms backwards",
         }}
-        className="flex border-l-2 border-l-transparent background-color 0.3s ease"
+        className="flex border-l-2 border-l-transparent"
       >
         <InnerLine merge={props} className="px-3 flex-1" />
       </div>
