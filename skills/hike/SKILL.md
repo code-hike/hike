@@ -365,7 +365,7 @@ After building all steps for a file, re-read each step and verify:
 1. Does it show the enclosing function/class/block? If not, add parent scope.
 2. Is there filler code that doesn't serve the explanation? If so, trim it.
 3. Does it introduce code that isn't relevant until a later step? If so, move it.
-4. Does the step have more than 5 new or changed lines? If so, split it.
+4. Does the step change more than 5 lines? If so, split it.
 5. Do consecutive steps share enough code for the reader to stay oriented? If not, add shared context.
 6. If the step isn't self-evident, does it have a `!callout`? If not, add one.
 7. Scan the step line by line. For each code line (not annotation comments), ask: is this from the diff and first introduced in this step? If yes, it needs a `!mark` before it (unless it's the callout target). Only skip marks with good reason.
