@@ -312,11 +312,15 @@ async function main() {
     return;
   }
 
+  console.log("Hike starting...");
+
   // If a page is specified and an instance is already running, just open the browser
   if (args.page) {
     const instance = getRunningInstance();
     if (instance) {
       const url = `http://localhost:${instance.port}/${args.page}`;
+      console.log(`Found running instance on port ${instance.port}`);
+      console.log(`Opening ${url}`);
       openBrowser(url, { forceOpen: true });
       return;
     }
@@ -339,7 +343,9 @@ async function main() {
   }
 
   const cwd = process.cwd();
+  const mode = args.command === "dev" ? "dev" : "production";
   console.log(`Project: ${path.basename(cwd)} (${cwd})`);
+  console.log(`Starting ${mode} server on http://localhost:${port}`);
 
   const root = path.resolve(__dirname, "..");
 
