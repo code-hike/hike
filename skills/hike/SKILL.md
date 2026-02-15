@@ -58,6 +58,7 @@ Go through the ordered files one at a time. For each file, think about how to br
 - If you're wondering whether to split — split.
 - If it's a new file, start very small.
 - Keep some shared code between consecutive steps so the reader has an anchor for the transition. If two steps share no code at all, they probably belong in separate `<Walk>` blocks.
+- **When stepping through sibling functions in the same file,** collapse the previous function and show the new function below it. This gives the reader a visual anchor for the transition. If the functions are truly unrelated, use separate `<Walk>` blocks instead.
 - **Freeze context code between steps.** Code carried over from a previous step for orientation must not change — don't silently add, modify, or reorder lines in it. (Collapsing multiple lines into a comment is fine — that reduces noise.) If the reader sees the context shift, their attention splits between the context change and the new code you're actually introducing. If you need to change that code too, do it in its own step first.
 
 ### What to include in each step
@@ -289,6 +290,40 @@ export function SongContent({ songId, initialSong }: SongContentProps) {
 }
 ```
 
+#### Collapsing code
+
+When trimming unimportant code, always use valid syntax. Use comments (`// ...`) to collapse lines. Never use bare `...` as code — it's not valid in most languages and breaks JSX/TSX parsing.
+
+Bad — bare `...` is not valid syntax:
+
+```tsx
+<text x={x} ...>x</text>
+```
+
+```tsx
+function foo(...) { }
+```
+
+Good — just omit unimportant props, no placeholder needed:
+
+```tsx
+<text x={x}>x</text>
+```
+
+For function args or other expressions, use a comment:
+
+```tsx
+function foo(/* ... */) {}
+```
+
+When collapsing multiple lines inside a block, use a single-line comment:
+
+```tsx
+function UserCard() {
+  // ...
+}
+```
+
 #### Comment syntax
 
 Annotation comments must use the comment syntax of the surrounding context.
@@ -336,6 +371,7 @@ After building all steps for a file, re-read each step and verify:
 7. Scan the step line by line. For each code line (not annotation comments), ask: is this from the diff and first introduced in this step? If yes, it needs a `!mark` before it (unless it's the callout target). Only skip marks with good reason.
 8. Compare each step's context code to the previous step. Is any carried-over code different (other than collapsing multiple lines into a comment)? If so, freeze it or move the change to its own step.
 9. Are all annotation comments (`!callout`, `!mark`, `!tooltip`, `!diff`) using the correct comment syntax for their context? (`//` in JS/TS, `{/* */}` in JSX)
+10. Is all code valid syntax? No bare `...` as expressions, props, or arguments — use comments to collapse code instead.
 
 Fix any violations before moving to the next file.
 
@@ -374,16 +410,15 @@ version: "the version of this skill"
 
 **Important: do this as you work, not after.** During Phases 1–4, whenever you're thinking through a decision — ordering files, splitting steps, deciding what to cut — write those thoughts down immediately in a scratch area. Don't wait until the end to reconstruct your reasoning; that produces rationalization, not the real process. **Log when you transition between phases** (e.g., "--- moving to Phase 3 ---") so the decision trail is easy to follow.
 
-After the hike file is complete, append all of those raw notes to the end of the file inside an MDX comment:
+After the hike file is complete, append all of those raw notes to the end of the file inside a fenced code block so raw content doesn't break MDX parsing:
 
-```
----
-
+````
 ## Thought Process
 
+```md
 (raw notes here)
-
 ```
+````
 
 This should be unedited stream-of-consciousness — the messy real-time reasoning, not a clean retrospective. Include false starts, uncertainties, things you almost did differently. The goal is to preserve the actual decision trail so the author can later understand what really happened during generation.
 
