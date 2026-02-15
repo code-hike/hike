@@ -62,35 +62,12 @@ Go through the ordered files one at a time. For each file, think about how to br
 ### What to include in each step
 
 - Only the code that matters. Filler code or unimportant classnames distract the reader from the important parts.
-- **Always include parent scope.** Every snippet must show the enclosing function, class, or block so the reader knows _where_ in the file the code lives. Never show floating lines without their surrounding structure. Example — if the change is a button inside a component, show the component wrapper:
-
-  Bad (floating lines, no context):
-
-  ```tsx
-  <button onClick={handleDelete}>
-    <Trash2 className="size-4" />
-  </button>
-  ```
-
-  Good (parent scope visible):
-
-  ```tsx
-  function UserCard() {
-    return (
-      <div>
-        <button onClick={handleDelete}>
-          <Trash2 className="size-4" />
-        </button>
-      </div>
-    );
-  }
-  ```
-
+- **Always include parent scope.** Every snippet must show all enclosing scopes up to the top-level declaration (function, class, component) so the reader knows _where_ in the file the code lives. Never show floating lines without their surrounding structure.
 - If some code isn't used until a later step, wait until that step to introduce it. Don't preload imports, helpers, or variables.
 - If needed, use comments to signal collapsed code or code that will be introduced later.
-- If the step isn't self-evident, add a `!callout` to explain what's happening. Callouts also guide the reader's attention to the right place and help them parse the step faster.
-- Max one `!callout` per step. If a step needs more than one, it's probably better to split into more steps.
-- To highlight extra lines that are related to a callout, put `!mark` before each line to highlight.
+- **Add a `!callout` to every step.** Callouts guide the reader's attention and help them parse the step faster. Carefully pick the most important line in the step to place the callout — it should point to the key change.
+- Max one `!callout` per step. If a step needs more than one callout, it's probably better to split into more steps.
+- **Mark changes.** By default, every line that comes from the diff and is first introduced in the current step gets a `!mark` — except the line targeted by the `!callout`. Deviate from these defaults only with good reason (e.g., skip marks when most lines in the step would be marked — in that case the marks add no signal).
 - For extra information, use `!tooltip` — supplementary info shown on demand.
 
 ### Walk syntax
@@ -149,6 +126,201 @@ Annotation reference:
   - TS/JS: `// !callout[...]`
   - JSX/TSX blocks: `{/* !callout[...] */}`
 
+### Common Pitfalls
+
+#### Parent scope
+
+Every snippet must show all enclosing scopes up to the top-level declaration. Never show floating lines.
+
+Bad — shows the inner function but not where it lives:
+
+```tsx
+function handleDelete() {
+  // ...
+}
+```
+
+Good — full nesting visible:
+
+```tsx
+function UserCard() {
+  function handleDelete() {
+    // ...
+  }
+  // ...
+}
+```
+
+Bad — floating JSX, no enclosing component:
+
+```tsx
+<button onClick={handleDelete}>
+  <Trash2 className="size-4" />
+</button>
+```
+
+Good — component scope visible:
+
+```tsx
+function UserCard() {
+  return (
+    <div>
+      <button onClick={handleDelete}>
+        <Trash2 className="size-4" />
+      </button>
+    </div>
+  );
+}
+```
+
+#### Mark usage
+
+`!mark` highlights the **next line only** — it is not a range boundary. Put one `!mark` before each changed line.
+
+Bad — no marks, changed lines buried in context:
+
+```ts
+export async function GET(request: NextRequest) {
+  const fileName = request.nextUrl.searchParams.get("file");
+  const filePath = getFilePath(fileName);
+  if (!fileName) {
+    return NextResponse.json({ error: "Missing param" }, { status: 400 });
+  }
+  const normalized = path.normalize(filePath);
+  // !callout[/startsWith/] Prevent path traversal
+  if (!normalized.startsWith(BASE_DIR)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const stat = fs.statSync(filePath);
+  return NextResponse.json({ mtime: stat.mtimeMs });
+}
+```
+
+Bad — treats `!mark` as range delimiters, only first and last changed lines get highlighted:
+
+```ts
+export async function GET(request: NextRequest) {
+  const fileName = request.nextUrl.searchParams.get("file");
+  const filePath = getFilePath(fileName);
+  // !mark
+  if (!fileName) {
+    return NextResponse.json({ error: "Missing param" }, { status: 400 });
+  }
+  const normalized = path.normalize(filePath);
+  // !callout[/startsWith/] Prevent path traversal
+  if (!normalized.startsWith(BASE_DIR)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  // !mark
+  const stat = fs.statSync(filePath);
+  return NextResponse.json({ mtime: stat.mtimeMs });
+}
+```
+
+Good — one `!mark` before each changed line (callout line excluded):
+
+```ts
+export async function GET(request: NextRequest) {
+  const fileName = request.nextUrl.searchParams.get("file");
+  const filePath = getFilePath(fileName);
+  // !mark
+  if (!fileName) {
+    // !mark
+    return NextResponse.json({ error: "Missing param" }, { status: 400 });
+    // !mark
+  }
+  // !mark
+  const normalized = path.normalize(filePath);
+  // !callout[/startsWith/] Prevent path traversal
+  if (!normalized.startsWith(BASE_DIR)) {
+    // !mark
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // !mark
+  }
+  const stat = fs.statSync(filePath);
+  return NextResponse.json({ mtime: stat.mtimeMs });
+}
+```
+
+#### Callout and mark on the same line
+
+A `!callout` already draws attention to its target line — adding `!mark` on the same line is redundant.
+
+Bad:
+
+```ts
+  // !callout[/startsWith/] Prevent path traversal
+  // !mark
+  if (!normalized.startsWith(BASE_DIR)) {
+```
+
+Good:
+
+```ts
+  // !callout[/startsWith/] Prevent path traversal
+  if (!normalized.startsWith(BASE_DIR)) {
+```
+
+#### Callout placement
+
+`!callout` targets the **next line**. Place it immediately before the line you want to annotate, not at the top of the block.
+
+Bad — callout taregeting `/youtubeId/` that's not in the next line:
+
+```tsx
+// !callout[/youtubeId/] Include in the save payload
+export function SongContent({ songId, initialSong }: SongContentProps) {
+  // ...
+  body: JSON.stringify({ sections, youtubeId: youtubeId || undefined }),
+  // ...
+}
+```
+
+Good — callout right before its target line:
+
+```tsx
+export function SongContent({ songId, initialSong }: SongContentProps) {
+  // ...
+  // !callout[/youtubeId/] Include in the save payload
+  body: JSON.stringify({ sections, youtubeId: youtubeId || undefined }),
+  // ...
+}
+```
+
+#### Comment syntax
+
+Annotation comments must use the comment syntax of the surrounding context.
+
+Bad — `//` comments inside JSX:
+
+```tsx
+function UserCard() {
+  // !mark
+  const name = "Alice";
+  return (
+    <div>
+      // !mark
+      <button onClick={handleClick}>Save</button>
+    </div>
+  );
+}
+```
+
+Good — `//` in JS context, `{/* */}` in JSX context:
+
+```tsx
+function UserCard() {
+  // !mark
+  const name = "Alice";
+  return (
+    <div>
+      {/* !mark */}
+      <button onClick={handleClick}>Save</button>
+    </div>
+  );
+}
+```
+
 ### Phase 3.1: Self-review
 
 After building all steps for a file, re-read each step and verify:
@@ -159,6 +331,7 @@ After building all steps for a file, re-read each step and verify:
 4. Is the step small enough (roughly 3 new lines)? If not, split it.
 5. Do consecutive steps share enough code for the reader to stay oriented? If not, add shared context.
 6. If the step isn't self-evident, does it have a `!callout`? If not, add one.
+7. Scan the step line by line. For each code line (not annotation comments), ask: is this from the diff and first introduced in this step? If yes, it needs a `!mark` before it (unless it's the callout target). Only skip marks with good reason.
 
 Fix any violations before moving to the next file.
 
