@@ -69,7 +69,7 @@ Go through the ordered files one at a time. For each file, think about how to br
 - If needed, use comments to signal collapsed code, code that will be introduced later, or code from earlier steps that is no longer relevant to the current step.
 - **Add a `!callout` to every step.** Callouts guide the reader's attention and help them parse the step faster. Carefully pick the most important line in the step to place the callout — it should point to the key change.
 - Max one `!callout` per step. If a step needs more than one callout, it's probably better to split into more steps.
-- **Mark changes.** By default, every line that comes from the diff and is first introduced in the current step gets a `!mark` — except the line targeted by the `!callout`. Deviate from these defaults only with good reason (e.g., skip marks when most lines in the step would be marked — in that case the marks add no signal).
+- **Mark changes.** Wrap contiguous new/changed lines with `!mark-start` and `!mark-end`. The callout target can be inside the range — that's fine. Skip marks when most lines in the step would be marked (marks add no signal in that case).
 - For extra information, use `!tooltip` — supplementary info shown on demand.
 
 ### Walk syntax
@@ -99,12 +99,12 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const fileName = request.nextUrl.searchParams.get("file");
 
-  // !mark
+  // !mark-start
   if (!fileName) {
     // !callout[/NextResponse/] Handle missing file
     return NextResponse.json({ error: "Missing file" }, { status: 400 });
-    // !mark
   }
+  // !mark-end
 
   const filePath = getFilePath(fileName);
   const stat = fs.statSync(filePath);
@@ -123,7 +123,7 @@ Annotation reference:
 
 - `!callout[/regex/] message` — explains intent at a regex match on the next line.
 - `!tooltip[/regex/] id` — on-demand detail, matching regex on the next line.
-- `!mark` — highlights the next line (no message, just visual emphasis).
+- `!mark-start` / `!mark-end` — highlights all lines between the two markers (visual emphasis, no message).
 - `!diff -` — marks the next line as removed (struck-through / red). Use when highlighting a deletion is important for the explanation.
 - Match comment style to language, for example:
   - TS/JS: `// !callout[...]`
@@ -178,7 +178,7 @@ function UserCard() {
 
 #### Mark usage
 
-`!mark` highlights the **next line only** — it is not a range boundary. Put one `!mark` before each changed line.
+Use `!mark-start` before the first changed line and `!mark-end` after the last changed line to bracket contiguous ranges. For non-contiguous changes, use separate pairs.
 
 Bad — no marks, changed lines buried in context:
 
@@ -199,13 +199,13 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-Bad — treats `!mark` as range delimiters, only first and last changed lines get highlighted:
+Good — contiguous changed lines bracketed with `!mark-start`/`!mark-end`:
 
 ```ts
 export async function GET(request: NextRequest) {
   const fileName = request.nextUrl.searchParams.get("file");
   const filePath = getFilePath(fileName);
-  // !mark
+  // !mark-start
   if (!fileName) {
     return NextResponse.json({ error: "Missing param" }, { status: 400 });
   }
@@ -214,54 +214,10 @@ export async function GET(request: NextRequest) {
   if (!normalized.startsWith(BASE_DIR)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  // !mark
+  // !mark-end
   const stat = fs.statSync(filePath);
   return NextResponse.json({ mtime: stat.mtimeMs });
 }
-```
-
-Good — one `!mark` before each changed line (callout line excluded):
-
-```ts
-export async function GET(request: NextRequest) {
-  const fileName = request.nextUrl.searchParams.get("file");
-  const filePath = getFilePath(fileName);
-  // !mark
-  if (!fileName) {
-    // !mark
-    return NextResponse.json({ error: "Missing param" }, { status: 400 });
-    // !mark
-  }
-  // !mark
-  const normalized = path.normalize(filePath);
-  // !callout[/startsWith/] Prevent path traversal
-  if (!normalized.startsWith(BASE_DIR)) {
-    // !mark
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    // !mark
-  }
-  const stat = fs.statSync(filePath);
-  return NextResponse.json({ mtime: stat.mtimeMs });
-}
-```
-
-#### Callout and mark on the same line
-
-A `!callout` already draws attention to its target line — adding `!mark` on the same line is redundant.
-
-Bad:
-
-```ts
-  // !callout[/startsWith/] Prevent path traversal
-  // !mark
-  if (!normalized.startsWith(BASE_DIR)) {
-```
-
-Good:
-
-```ts
-  // !callout[/startsWith/] Prevent path traversal
-  if (!normalized.startsWith(BASE_DIR)) {
 ```
 
 #### Callout placement
@@ -332,11 +288,11 @@ Bad — `//` comments inside JSX:
 
 ```tsx
 function UserCard() {
-  // !mark
+  // !mark-start
   const name = "Alice";
   return (
     <div>
-      // !mark
+      // !mark-end
       <button onClick={handleClick}>Save</button>
     </div>
   );
@@ -347,11 +303,11 @@ Good — `//` in JS context, `{/* */}` in JSX context:
 
 ```tsx
 function UserCard() {
-  // !mark
+  // !mark-start
   const name = "Alice";
   return (
     <div>
-      {/* !mark */}
+      {/* !mark-end */}
       <button onClick={handleClick}>Save</button>
     </div>
   );
@@ -368,9 +324,9 @@ After building all steps for a file, re-read each step and verify:
 4. Does the step change more than 5 lines? If so, split it.
 5. Do consecutive steps share enough code for the reader to stay oriented? If not, add shared context.
 6. If the step isn't self-evident, does it have a `!callout`? If not, add one.
-7. Scan the step line by line. For each code line (not annotation comments), ask: is this from the diff and first introduced in this step? If yes, it needs a `!mark` before it (unless it's the callout target). Only skip marks with good reason.
+7. Are contiguous new/changed lines bracketed with `!mark-start`/`!mark-end`? If not, add them. Only skip marks with good reason (e.g., most lines in the step are changed).
 8. Compare each step's context code to the previous step. Is any carried-over code different (other than collapsing multiple lines into a comment)? If so, freeze it or move the change to its own step.
-9. Are all annotation comments (`!callout`, `!mark`, `!tooltip`, `!diff`) using the correct comment syntax for their context? (`//` in JS/TS, `{/* */}` in JSX)
+9. Are all annotation comments (`!callout`, `!mark-start`, `!mark-end`, `!tooltip`, `!diff`) using the correct comment syntax for their context? (`//` in JS/TS, `{/* */}` in JSX)
 10. Is all code valid syntax? No bare `...` as expressions, props, or arguments — use comments to collapse code instead.
 
 Fix any violations before moving to the next file.
@@ -388,7 +344,7 @@ Now assemble the full MDX file. The `<Walk>` blocks are the backbone — the pro
 
 **Prose style:** Short sentences. Front-load the key point. Bold sparingly for scanning. Inline code as _`symbol`_. End with a colon when directly introducing a code block. Don't repeat what's visible in the snippet.
 
-**Comment syntax for annotations:** TS/JS → `// !callout[...]`, JSX → `{/* !callout[...] */}`. Annotations (`!mark`, `!callout`, `!diff`, `!tooltip`) only work inside `<Walk>`-managed code blocks. Outside them, use standard fenced code blocks with short prose.
+**Comment syntax for annotations:** TS/JS → `// !callout[...]`, JSX → `{/* !callout[...] */}`. Annotations (`!mark-start`/`!mark-end`, `!callout`, `!diff`, `!tooltip`) only work inside `<Walk>`-managed code blocks. Outside them, use standard fenced code blocks with short prose.
 
 **Close with completeness:** The final steps should show the complete working mechanism.
 
