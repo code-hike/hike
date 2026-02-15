@@ -56,6 +56,7 @@ export function WalkClient(props: {
       className={cn(
         "border rounded selection:bg-dk-selection selection:text-current border-dk-border overflow-hidden relative flex flex-col max-h-full min-h-0 my-4 gap-0 not-prose",
         "focus:outline-none focus-visible:outline-none focus-visible:shadow-[0_0_8px_2px_rgba(14,165,233,0.3)]",
+        "scroll-my-8",
         className,
       )}
       tabIndex={0}

@@ -1,6 +1,7 @@
 ---
 name: hike
 description: Display a rich explanation of the current conversation. Only use when explicitly called.
+version: 0.1.2
 allowed-tools:
   - Read
   - Write
@@ -13,7 +14,6 @@ allowed-tools:
   - Bash(git rev-parse*)
   - Bash(git show*)
   - Bash(npx @code-hike/hike*)
-version: 0.1.2
 ---
 
 Write a narrative explaining what happened in this coding session.
@@ -42,6 +42,7 @@ Look at all the files changed and think about the best order to present them. Th
 - **Foundation before usage** — if file A defines a helper that file B uses, explain A first.
 - **Setup before dependent logic** — config, types, schemas before the code that relies on them.
 - **Core mechanism before edge cases** — the happy path first, error handling after.
+- **Split a file across multiple `<Walk>` blocks when it helps** — if a file has many changes or changes that serve different purposes, explain each group in a separate `<Walk>` placed where it fits in the narrative. Don't force everything into one block just because it's the same file.
 
 The goal is that at every point in the narrative, the reader already has the context they need for what comes next. If a file change depends on understanding another file's change, the dependency comes first.
 
@@ -56,11 +57,35 @@ Go through the ordered files one at a time. For each file, think about how to br
 - One small concept per step. As a rule of thumb, _small_ is around 3 lines of new code — though it depends on complexity and atomicity. The idea is that each step should be easy to digest.
 - If you're wondering whether to split — split.
 - If it's a new file, start very small.
+- Keep some shared code between consecutive steps so the reader has an anchor for the transition. If two steps share no code at all, they probably belong in separate `<Walk>` blocks.
 
 ### What to include in each step
 
 - Only the code that matters. Filler code or unimportant classnames distract the reader from the important parts.
-- But always include parent scope / context so the reader knows where things are happening.
+- **Always include parent scope.** Every snippet must show the enclosing function, class, or block so the reader knows _where_ in the file the code lives. Never show floating lines without their surrounding structure. Example — if the change is a button inside a component, show the component wrapper:
+
+  Bad (floating lines, no context):
+
+  ```tsx
+  <button onClick={handleDelete}>
+    <Trash2 className="size-4" />
+  </button>
+  ```
+
+  Good (parent scope visible):
+
+  ```tsx
+  function UserCard() {
+    return (
+      <div>
+        <button onClick={handleDelete}>
+          <Trash2 className="size-4" />
+        </button>
+      </div>
+    );
+  }
+  ```
+
 - If some code isn't used until a later step, wait until that step to introduce it. Don't preload imports, helpers, or variables.
 - If needed, use comments to signal collapsed code or code that will be introduced later.
 - If the step isn't self-evident, add a `!callout` to explain what's happening. Callouts also guide the reader's attention to the right place and help them parse the step faster.
@@ -70,7 +95,7 @@ Go through the ordered files one at a time. For each file, think about how to br
 
 ### Walk syntax
 
-Each file gets one `<Walk>` block with a `filename` attribute. Inside it, each step is a code fence with "!!" in the metastring. Tooltip content goes in `## !id` headings after the steps.
+Each group of related changes gets one `<Walk>` block with a `filename` attribute (a file may have multiple `<Walk>` blocks if its changes are unrelated — see Phase 2). Inside it, each step is a code fence with "!!" in the metastring. Tooltip content goes in `## !id` headings after the steps.
 
 ````mdx
 <Walk filename="app/api/mtime/route.ts">
@@ -117,12 +142,25 @@ Next.js caches route handlers by default; `force-dynamic` ensures every poll get
 
 Annotation reference:
 
-- `!callout[/regex/] message` — explains intent at a regex match.
-- `!tooltip[/regex/] id` — on-demand detail.
-- `!mark` — placed before a line to highlight it (no message, just visual emphasis).
+- `!callout[/regex/] message` — explains intent at a regex match on the next line.
+- `!tooltip[/regex/] id` — on-demand detail, matching regex on the next line.
+- `!mark` — highlights the next line (no message, just visual emphasis).
 - Match comment style to language, for example:
   - TS/JS: `// !callout[...]`
   - JSX/TSX blocks: `{/* !callout[...] */}`
+
+### Phase 3.1: Self-review
+
+After building all steps for a file, re-read each step and verify:
+
+1. Does it show the enclosing function/class/block? If not, add parent scope.
+2. Is there filler code that doesn't serve the explanation? If so, trim it.
+3. Does it introduce code that isn't relevant until a later step? If so, move it.
+4. Is the step small enough (roughly 3 new lines)? If not, split it.
+5. Do consecutive steps share enough code for the reader to stay oriented? If not, add shared context.
+6. If the step isn't self-evident, does it have a `!callout`? If not, add one.
+
+Fix any violations before moving to the next file.
 
 ## Phase 4: Structure the Narrative Around the `<Walk>`
 
@@ -148,7 +186,7 @@ Now assemble the full MDX file. The `<Walk>` blocks are the backbone — the pro
 ```yaml
 ---
 title: "Human-readable session title"
-date: "YYYY-MM-DDTHH:MM:SS"
+date: "YYYY-MM-DDTHH:MM:SS" # must include the time, not just the date
 version: "the version of this skill"
 ---
 ```
@@ -157,7 +195,7 @@ version: "the version of this skill"
 
 ## Phase 5: Append Raw Thought Process
 
-**Important: do this as you work, not after.** During Phases 1–4, whenever you're thinking through a decision — ordering files, splitting steps, deciding what to cut — write those thoughts down immediately in a scratch area. Don't wait until the end to reconstruct your reasoning; that produces rationalization, not the real process.
+**Important: do this as you work, not after.** During Phases 1–4, whenever you're thinking through a decision — ordering files, splitting steps, deciding what to cut — write those thoughts down immediately in a scratch area. Don't wait until the end to reconstruct your reasoning; that produces rationalization, not the real process. **Log when you transition between phases** (e.g., "--- moving to Phase 3 ---") so the decision trail is easy to follow.
 
 After the hike file is complete, append all of those raw notes to the end of the file inside an MDX comment:
 
@@ -176,9 +214,9 @@ This should be unedited stream-of-consciousness — the messy real-time reasonin
 
 **Before writing, check for secrets.** Scan the full output for API keys, tokens, passwords, credentials, or private URLs. Redact or omit any that appear.
 
-Write to `.hike/<descriptive-slug>.mdx`. Derive the slug from session content (e.g., `add-dark-mode-toggle.mdx`, `fix-auth-redirect-loop.mdx`, `refactor-api-client.mdx`). Create `.hike/` if it doesn't exist.
+Write to `.hike/<descriptive-slug>.mdx`. Derive the slug from session content (e.g., `add-dark-mode-toggle.mdx`, `fix-auth-redirect-loop.mdx`, `refactor-api-client.mdx`). Create `.hike/` if it doesn't exist. If the file already exists, append `-2`, `-3`, etc. (e.g., `add-dark-mode-toggle-2.mdx`).
 
-Run `npx @code-hike/hike@^<version> <filename>` in the background to open a browser preview. Use the version of this skill prefixed with `^` for compatible versions. Use `run_in_background: true` so the user can review at their own pace without blocking the conversation:
+Run `npx @code-hike/hike@^<version> <filename>` in the background to open a browser preview. Use the version of this skill prefixed with `^` for compatible versions. Use `run_in_background: true` so the user can review at their own pace without blocking the conversation. **Run the command in the user's current working directory** (not inside `.hike/`):
 
 ```bash
 npx @code-hike/hike@^<version> <slug>.mdx

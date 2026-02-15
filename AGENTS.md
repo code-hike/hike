@@ -26,3 +26,12 @@ Three facets: a **skill** (installed via `npx skills add code-hike/hike`), an **
 ## Publishing
 
 Published to npm as `@code-hike/hike`. The `files` field ships only `bin/` and `.next/`. `prepack` runs the build automatically.
+
+When I tell you to `release` do this:
+
+- commit
+- update package json and skill versions (patch unless I say otherwise)
+- run `npm publish:npm`
+- commit
+- tag
+- push
