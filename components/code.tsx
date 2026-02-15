@@ -1,4 +1,10 @@
-import { AnnotationHandler, Pre, RawCode, highlight } from "codehike/code";
+import {
+  AnnotationHandler,
+  CodeAnnotation,
+  Pre,
+  RawCode,
+  highlight,
+} from "codehike/code";
 
 import { cn } from "@/lib/utils";
 import { getHandlers } from "./code.handlers";
@@ -82,6 +88,9 @@ export async function toCodeGroup(props: {
         { ...tab, lang: tab.lang || "txt" },
         theme,
       );
+      highlighted.annotations = transformRangeAnnotations(
+        highlighted.annotations,
+      );
       const handlers = getHandlers(options);
       if (props.handlers) {
         handlers.push(...props.handlers);
@@ -116,6 +125,63 @@ export async function toCodeGroup(props: {
     },
     tabs,
   };
+}
+
+const RANGE_SUFFIX_START = "-start";
+const RANGE_SUFFIX_END = "-end";
+
+function transformRangeAnnotations(
+  annotations: CodeAnnotation[],
+): CodeAnnotation[] {
+  const starts: { name: string; annotation: CodeAnnotation }[] = [];
+  const ends: { name: string; annotation: CodeAnnotation }[] = [];
+  const rest: CodeAnnotation[] = [];
+
+  for (const a of annotations) {
+    if (a.name.endsWith(RANGE_SUFFIX_START)) {
+      starts.push({
+        name: a.name.slice(0, -RANGE_SUFFIX_START.length),
+        annotation: a,
+      });
+    } else if (a.name.endsWith(RANGE_SUFFIX_END)) {
+      ends.push({
+        name: a.name.slice(0, -RANGE_SUFFIX_END.length),
+        annotation: a,
+      });
+    } else {
+      rest.push(a);
+    }
+  }
+
+  // Sort by line number
+  const lineOf = (a: CodeAnnotation) =>
+    "fromLineNumber" in a
+      ? (a.fromLineNumber as number)
+      : "lineNumber" in a
+        ? (a.lineNumber as number)
+        : 0;
+
+  starts.sort((a, b) => lineOf(a.annotation) - lineOf(b.annotation));
+  ends.sort((a, b) => lineOf(a.annotation) - lineOf(b.annotation));
+
+  // Pair starts with ends by name, in order
+  const usedEnds = new Set<number>();
+  for (const start of starts) {
+    const endIdx = ends.findIndex(
+      (e, i) => !usedEnds.has(i) && e.name === start.name,
+    );
+    if (endIdx !== -1) {
+      usedEnds.add(endIdx);
+      rest.push({
+        name: start.name,
+        query: start.annotation.query,
+        fromLineNumber: lineOf(start.annotation),
+        toLineNumber: lineOf(ends[endIdx].annotation) - 1,
+      });
+    }
+  }
+
+  return rest;
 }
 
 function extractFlags(codeblock: RawCode) {

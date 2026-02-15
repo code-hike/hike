@@ -6,6 +6,25 @@ version: "0.0.1"
 
 The mastery app reads `.goal.mdx` files from outside the Next.js tree (`../../hikes/`), so the dev server doesn't watch them — editing a file means a manual browser refresh.
 
+```ts
+// !tooltip[/force-dynamic/] dynamic
+export const dynamic = "force-dynamic";
+// !mark-start
+export async function GET(request: NextRequest) {
+  const fileName = request.nextUrl.searchParams.get("file");
+  // !mark-end
+
+  if (!fileName) {
+    // !mark-start
+    // !callout[/400/] Bail early if missing
+    return NextResponse.json({ error: "Missing file" }, { status: 400 });
+  }
+
+  // !mark-end
+  return 1;
+}
+```
+
 The fix: a polling loop that checks the file's **mtime** every second and calls `router.refresh()` when it changes. Three pieces: an API route, a polling component, and a one-line page integration.
 
 ## Mtime endpoint

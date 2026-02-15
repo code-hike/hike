@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
 
 `!callout` targets the **next line**. Place it immediately before the line you want to annotate, not at the top of the block.
 
-Bad — callout taregeting `/youtubeId/` that's not in the next line:
+Bad — callout targeting `/youtubeId/` that's not in the next line:
 
 ```tsx
 // !callout[/youtubeId/] Include in the save payload
