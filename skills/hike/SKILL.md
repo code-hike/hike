@@ -1,7 +1,7 @@
 ---
 name: hike
 description: Display a rich explanation of the current conversation. Only use when explicitly called.
-version: 0.1.3
+version: 0.1.4
 allowed-tools:
   - Read
   - Write
