@@ -324,12 +324,12 @@ Now assemble the full MDX file. The `<Walk>` blocks are the backbone — the pro
 
 ### Finishing touches
 
-**Add frontmatter** at the top of the file:
+**Add frontmatter** at the top of the file. Get the current timestamp by running `date +%Y-%m-%dT%H:%M:%S`:
 
 ```yaml
 ---
 title: "Human-readable session title"
-date: "YYYY-MM-DDTHH:MM:SS" # must include the time, not just the date
+date: "YYYY-MM-DDTHH:MM:SS"
 version: "the version of this skill"
 ---
 ```
