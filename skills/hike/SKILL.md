@@ -54,7 +54,7 @@ Go through the ordered files one at a time. For each file, think about how to br
 
 ### How to split
 
-- **Hard limit: no more than 5 new or changed lines per step.** (Collapsing previously-introduced code into a comment doesn't count as a changed line.) If a step exceeds this, split it — no exceptions.
+- **Hard limit: no more than 5 lines changed between consecutive steps.** "Changed" means lines that are different when comparing step N to step N-1 (for the first step in a Walk, all lines count). Collapsing previously-introduced code into a comment doesn't count as a changed line. If a step exceeds 5, split it — no exceptions. Count literally.
 - If you're wondering whether to split — split.
 - If it's a new file, start very small.
 - Keep some shared code between consecutive steps so the reader has an anchor for the transition. If two steps share no code at all, they probably belong in separate `<Walk>` blocks.
@@ -63,13 +63,13 @@ Go through the ordered files one at a time. For each file, think about how to br
 
 ### What to include in each step
 
-- Only the code that matters. Filler code or unimportant classnames distract the reader from the important parts.
+- Only the code that matters. Filler code or unimportant classnames distract the reader from the important parts. **Trim Tailwind class strings** to only the classes relevant to the explanation (e.g., if the callout is about `print:hidden`, show `className="... print:hidden"` — don't include the full `"fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-zinc-900/90 backdrop-blur ..."` string). Omit the `className` prop entirely when no class is relevant.
 - **Always include parent scope.** Every snippet must show all enclosing scopes up to the top-level declaration (function, class, component) so the reader knows _where_ in the file the code lives. Never show floating lines without their surrounding structure.
 - If some code isn't used until a later step, wait until that step to introduce it. Don't preload imports, helpers, or variables.
 - If needed, use comments to signal collapsed code, code that will be introduced later, or code from earlier steps that is no longer relevant to the current step.
 - **Add a `!callout` to every step.** Callouts guide the reader's attention and help them parse the step faster. Carefully pick the most important line in the step to place the callout — it should point to the key change.
 - Max one `!callout` per step. If a step needs more than one callout, it's probably better to split into more steps.
-- **Mark changes.** Wrap contiguous new/changed lines with `!mark-start` and `!mark-end`. The callout target can be inside the range — that's fine. Skip marks when most lines in the step would be marked (marks add no signal in that case).
+- **Mark changes.** Wrap contiguous new/changed lines with `!mark-start` and `!mark-end`. The callout target can be inside the range — that's fine. **Marks are mandatory whenever a step mixes context code with new/changed code** — they're the only way the reader knows what changed. Skip marks only when most lines in the step would be marked (marks add no signal in that case).
 - For extra information, use `!tooltip` — supplementary info shown on demand.
 
 ### Walk syntax
@@ -256,7 +256,7 @@ function UserCard() {
 
 #### Comment syntax
 
-Annotation comments must use the comment syntax of the surrounding context.
+Annotation comments must use the comment syntax of the surrounding context AND appear in a valid position for that syntax.
 
 Bad — `//` comments inside JSX:
 
@@ -288,19 +288,37 @@ function UserCard() {
 }
 ```
 
+Bad — `{/* */}` between JSX element attributes (not a valid position):
+
+```tsx
+<iframe
+  {/* !callout[/print:hidden/m] Hidden on print */}
+  className="... print:hidden"
+/>
+```
+
+Good — annotation on its own line before the element:
+
+```tsx
+{/* !callout[/print:hidden/m] Hidden on print */}
+<iframe className="... print:hidden" />
+```
+
+Note: `{/* */}` annotations are only valid as **JSX children** (inside an element's opening/closing tags), never between attributes, and never as bare expressions in ternary branches like `condition ? ( {/* !mark-start */} <div>...</div> ) : ...`. Place them inside the nearest enclosing element instead.
+
 ### Phase 3.1: Self-review
 
 After building all steps for a file, re-read each step and verify:
 
 1. Does it show the enclosing function/class/block? If not, add parent scope.
-2. Is there filler code that doesn't serve the explanation? If so, trim it.
+2. Is there filler code that doesn't serve the explanation? Long Tailwind class strings with irrelevant classes? If so, trim it.
 3. Does it introduce code that isn't relevant until a later step? If so, move it.
-4. Does the step change more than 5 lines? If so, split it.
+4. Count lines changed from the previous step (or all lines for the first step). More than 5? Split it.
 5. Do consecutive steps share enough code for the reader to stay oriented? If not, add shared context.
 6. If the step isn't self-evident, does it have a `!callout`? If not, add one.
 7. Are contiguous new/changed lines bracketed with `!mark-start`/`!mark-end`? If not, add them. Only skip marks with good reason (e.g., most lines in the step are changed).
 8. Compare each step's context code to the previous step. Is any carried-over code different (other than collapsing multiple lines into a comment)? If so, freeze it or move the change to its own step.
-9. Are all annotation comments (`!callout`, `!mark-start`, `!mark-end`, `!tooltip`, `!diff`) using the correct comment syntax for their context? (`//` in JS/TS, `{/* */}` in JSX)
+9. Are all annotation comments (`!callout`, `!mark-start`, `!mark-end`, `!tooltip`, `!diff`) using the correct comment syntax for their context (`//` in JS/TS, `{/* */}` in JSX) AND placed in valid positions? (No `{/* */}` between element attributes or as bare ternary expressions.)
 10. Is all code valid syntax? No bare `...` as expressions, props, or arguments — use comments to collapse code instead.
 
 Fix any violations before moving to the next file.
@@ -330,7 +348,7 @@ Now assemble the full MDX file. The `<Walk>` blocks are the backbone — the pro
 ---
 title: "Human-readable session title"
 date: "YYYY-MM-DDTHH:MM:SS"
-version: "the version of this skill"
+version: "<version from this skill's frontmatter>"
 ---
 ```
 
@@ -360,7 +378,7 @@ Write to `.hike/<descriptive-slug>.mdx`. Derive the slug from session content (e
 
 **Skip this step in non-interactive mode** (Claude Code's `-p`/`--print` flag) — there's no browser to open.
 
-Otherwise, run `npx @code-hike/hike@^<version> <filename>` in the background to open a browser preview. Use the version of this skill prefixed with `^` for compatible versions. Use `run_in_background: true` so the user can review at their own pace without blocking the conversation. **Run the command in the user's current working directory** (not inside `.hike/`).
+Otherwise, run `npx @code-hike/hike@^<version> <filename>` in the background to open a browser preview. `<version>` is the version from this skill's frontmatter, prefixed with `^` for compatible versions. Use `run_in_background: true` so the user can review at their own pace without blocking the conversation. **Run the command in the user's current working directory** (not inside `.hike/`).
 
 ```bash
 npx @code-hike/hike@^<version> <slug>.mdx
