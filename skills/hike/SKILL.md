@@ -358,10 +358,10 @@ This should be unedited stream-of-consciousness — the messy real-time reasonin
 
 Write to `.hike/<descriptive-slug>.mdx`. Derive the slug from session content (e.g., `add-dark-mode-toggle.mdx`, `fix-auth-redirect-loop.mdx`, `refactor-api-client.mdx`). Create `.hike/` if it doesn't exist. If the file already exists, append `-2`, `-3`, etc. (e.g., `add-dark-mode-toggle-2.mdx`).
 
-Run `npx @code-hike/hike@^<version> <filename>` in the background to open a browser preview. Use the version of this skill prefixed with `^` for compatible versions. Use `run_in_background: true` so the user can review at their own pace without blocking the conversation. **Run the command in the user's current working directory** (not inside `.hike/`).
+**Skip this step in non-interactive mode** (Claude Code's `-p`/`--print` flag) — there's no browser to open.
+
+Otherwise, run `npx @code-hike/hike@^<version> <filename>` in the background to open a browser preview. Use the version of this skill prefixed with `^` for compatible versions. Use `run_in_background: true` so the user can review at their own pace without blocking the conversation. **Run the command in the user's current working directory** (not inside `.hike/`).
 
 ```bash
 npx @code-hike/hike@^<version> <slug>.mdx
 ```
-
-If running in non-interactive mode (Claude Code's `-p`/`--print` flag), pass `--no-open` to skip opening the browser.
