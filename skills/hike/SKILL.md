@@ -300,8 +300,10 @@ Bad — `{/* */}` between JSX element attributes (not a valid position):
 Good — annotation on its own line before the element:
 
 ```tsx
-{/* !callout[/print:hidden/m] Hidden on print */}
-<iframe className="... print:hidden" />
+{
+  /* !callout[/print:hidden/m] Hidden on print */
+}
+<iframe className="... print:hidden" />;
 ```
 
 Note: `{/* */}` annotations are only valid as **JSX children** (inside an element's opening/closing tags), never between attributes, and never as bare expressions in ternary branches like `condition ? ( {/* !mark-start */} <div>...</div> ) : ...`. Place them inside the nearest enclosing element instead.
@@ -360,13 +362,13 @@ version: "<version from this skill's frontmatter>"
 
 After the hike file is complete, append all of those raw notes to the end of the file inside a fenced code block so raw content doesn't break MDX parsing:
 
-````
+`````
 ## Thought Process
 
-```md
+````md
 (raw notes here)
-```
 ````
+`````
 
 This should be unedited stream-of-consciousness — the messy real-time reasoning, not a clean retrospective. Include false starts, uncertainties, things you almost did differently. The goal is to preserve the actual decision trail so the author can later understand what really happened during generation.
 
