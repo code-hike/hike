@@ -91,6 +91,7 @@ function parseArgs(argv) {
     port: undefined,
     help: false,
     page: undefined,
+    noOpen: false,
   };
 
   const args = argv.slice(2);
@@ -104,6 +105,11 @@ function parseArgs(argv) {
 
     if (a === "-h" || a === "--help") {
       result.help = true;
+      continue;
+    }
+
+    if (a === "--no-open") {
+      result.noOpen = true;
       continue;
     }
 
@@ -143,6 +149,7 @@ function usage() {
     "",
     "Options:",
     `  -p, --port <port>    Port to listen on (default: ${DEFAULT_PORT})`,
+    "  --no-open            Don't open the browser automatically",
     "  -h, --help           Show this help",
   ].join("\n");
 }
@@ -310,6 +317,10 @@ async function main() {
   if (args.help) {
     process.stdout.write(`${usage()}\n`);
     return;
+  }
+
+  if (args.noOpen) {
+    process.env.HIKE_NO_OPEN = "1";
   }
 
   console.log("Hike starting...");
